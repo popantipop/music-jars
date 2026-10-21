@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Music Jars</title>
+<meta name="description" content="Fill a jar for every band, DJ and nightclub you love, with blood, tips or goo, until it overflows. Save your shelf as a picture.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Music Jars">
+<meta property="og:description" content="Fill your jars. Bands, DJs, nightclubs. Pour blood, tips or goo until it overflows.">
+<meta property="og:url" content="https://popantipop.github.io/music-jars/">
+<meta property="og:image" content="https://popantipop.github.io/music-jars/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Music Jars">
+<meta name="twitter:description" content="Fill your jars. Bands, DJs, nightclubs. Pour blood, tips or goo until it overflows.">
+<meta name="twitter:image" content="https://popantipop.github.io/music-jars/og.png">
+<meta name="theme-color" content="#141217">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=IBM+Plex+Mono:wght@500&family=Instrument+Sans:wght@400;600&display=swap">
+<style>
+/* Layout: gig-flyer masthead → name + what you're pouring → shelf picker → 28 open jars (7 across, one sub-genre per row) → the picture. Dark-first. */
+:root {
+  --bg: #141217;
+  --panel: #1d1a22;
+  --line: #36313e;
+  --fg: #ece8f1;
+  --muted: #9a93a5;
+  --tape: #e3d6ae;
+  --tape-ink: #2a2318;
+  --ink: #b3121f;
+  --focus: #f1e7c4;
+  --f-display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
+  --f-body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #e8e6ec; --panel: #f4f3f6; --line: #c9c4d1; --fg: #1a1620; --muted: #645d70;
+    --tape: #e9dcb2; --tape-ink: #2a2318; --focus: #1a1620; color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #e8e6ec; --panel: #f4f3f6; --line: #c9c4d1; --fg: #1a1620; --muted: #645d70;
+  --tape: #e9dcb2; --tape-ink: #2a2318; --focus: #1a1620; color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--f-body); font-size: 15px; line-height: 1.5;
+}
+.wrap {
+  max-width: 1120px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 0;
+  display: flex; flex-direction: column; gap: 36px;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+
+/* Masthead */
+.mast { display: grid; gap: 10px; }
+.mast h1 {
+  margin: 0; font-family: var(--f-display); font-weight: 900;
+  font-size: clamp(64px, 15vw, 168px); line-height: 0.82; letter-spacing: -0.01em;
+  text-transform: uppercase; text-wrap: balance;
+}
+.mast h1 span { color: var(--ink); transition: color .3s; }
+.mast p { margin: 0; max-width: 60ch; color: var(--muted); font-size: 16px; }
+.scale {
+  display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 6px;
+  font-family: var(--f-mono); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted);
+}
+.scale b { color: var(--fg); font-weight: 500; }
+
+/* Setup */
+.setup { display: grid; grid-template-columns: 1fr 1.6fr; gap: 14px; }
+.field {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+  padding: 14px 16px; display: grid; gap: 10px; align-content: start; min-width: 0;
+}
+.field.wide { grid-column: 1 / -1; }
+.label {
+  font-family: var(--f-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+}
+.field input {
+  width: 100%; background: transparent; border: 0; border-bottom: 1px solid var(--line);
+  color: var(--fg); font: 600 20px var(--f-body); padding: 4px 0;
+}
+.field input::placeholder { color: var(--muted); font-weight: 400; }
+.field input:focus { outline: none; border-bottom-color: var(--fg); }
+
+.pours { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; }
+.pour {
+  display: flex; align-items: center; gap: 8px; padding: 4px 14px 4px 6px;
+  border: 1px solid var(--line); border-radius: 6px; background: transparent;
+  font-weight: 600;
+}
+.pour svg { width: 30px; height: 45px; color: var(--fg); display: block; }
+.pour[aria-pressed="true"] { border-color: var(--fg); background: color-mix(in srgb, var(--fg) 8%, transparent); }
+.pour:hover { border-color: var(--fg); }
+.chip {
+  border: 1px solid var(--line); background: transparent; border-radius: 999px;
+  padding: 6px 14px; font-size: 13px; align-self: center;
+}
+.chip:hover { border-color: var(--fg); }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.tab {
+  border: 1px solid var(--line); background: transparent; border-radius: 4px;
+  padding: 7px 12px; font-family: var(--f-display); font-weight: 800; font-size: 19px;
+  text-transform: uppercase; letter-spacing: .02em; line-height: 1.1;
+}
+.tab:hover { border-color: var(--fg); }
+.tab[aria-selected="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+
+/* Shelf */
+.deck-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+.deck-head h2 {
+  margin: 0; font-family: var(--f-display); font-weight: 900; font-size: clamp(34px, 6vw, 52px);
+  text-transform: uppercase; line-height: .95;
+}
+.deck-head p { margin: 0; color: var(--muted); max-width: 52ch; }
+.groups { display: grid; gap: 26px; }
+.group { display: grid; gap: 12px; }
+.group-label {
+  margin: 0; font-family: var(--f-mono); font-weight: 500; font-size: 12px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--muted);
+  display: flex; align-items: center; gap: 12px;
+}
+.group-label::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.shelf { display: grid; grid-template-columns: repeat(var(--cols, 7), minmax(0, 1fr)); gap: 22px 12px; }
+
+.cell { display: grid; justify-items: center; gap: 6px; min-width: 0; }
+.jar {
+  width: 100%; max-width: 100px; border: 0; background: none; padding: 0; display: block; color: var(--fg);
+}
+.jar svg { width: 100%; height: auto; aspect-ratio: 100 / 150; max-width: 100%; display: block; overflow: visible; }
+.jar:hover svg .glass-line { stroke-opacity: .85; }
+.drip { transform-box: fill-box; transform-origin: 50% 0; animation: drip 2.6s ease-in-out infinite alternate; }
+.drip.d2 { animation-duration: 3.4s; animation-delay: -1s; }
+.drip.d3 { animation-duration: 2.9s; animation-delay: -2s; }
+@keyframes drip { from { transform: scaleY(.84); } to { transform: scaleY(1.04); } }
+
+.tape {
+  background: var(--tape); color: var(--tape-ink);
+  font-weight: 600; font-size: 13px; line-height: 1.2; text-align: center;
+  padding: 5px 7px; border-radius: 1px; transform: rotate(-1.5deg);
+  max-width: 100%; overflow-wrap: anywhere; text-wrap: balance;
+  box-shadow: 0 1px 0 rgba(0,0,0,.25);
+}
+.cell:nth-child(even) .tape { transform: rotate(1.2deg); }
+.dots { display: flex; gap: 4px; margin-top: 2px; }
+.dot {
+  width: 17px; height: 17px; border-radius: 50%; padding: 0;
+  border: 1.5px solid color-mix(in srgb, var(--fg) 35%, transparent); background: transparent;
+}
+.dot.on { background: var(--ink); border-color: var(--ink); }
+.level { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); text-align: center; min-height: 1.4em; }
+.cell.filled .level { color: var(--fg); }
+.cell.over .level { color: var(--ink); font-weight: 500; }
+
+/* Result */
+.result { display: grid; gap: 16px; padding-bottom: 40px; }
+.result h2 { margin: 0; font-family: var(--f-display); font-weight: 900; font-size: clamp(34px, 6vw, 52px); text-transform: uppercase; line-height: .95; }
+.result-body { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 24px; align-items: start; }
+.result img { width: 100%; max-width: 100%; border: 1px solid var(--line); border-radius: 4px; display: block; }
+.placeholder {
+  aspect-ratio: 4 / 5; max-width: 100%; border: 1px dashed var(--line); border-radius: 4px;
+  display: grid; place-items: center; text-align: center; padding: 24px; color: var(--muted);
+}
+.howto { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.howto p { margin: 0; color: var(--muted); max-width: 50ch; }
+.btns { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn {
+  border: 1px solid var(--fg); background: var(--fg); color: var(--bg);
+  border-radius: 4px; padding: 10px 16px; font-weight: 600;
+}
+.btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+.btn.ghost:hover { border-color: var(--fg); }
+.btn.danger { border-color: var(--ink); color: var(--fg); }
+.note { font-size: 13px; color: var(--muted); }
+#copy-fallback { width: 100%; background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; padding: 10px; font: 13px var(--f-mono); }
+
+/* Sticky bar */
+.bar {
+  position: sticky; bottom: 0; z-index: 5;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.bar-inner {
+  max-width: 1120px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 10px;
+}
+.meter { display: flex; align-items: center; gap: 12px; min-width: 0; font-family: var(--f-mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+.meter-track { width: 120px; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.meter-fill { height: 100%; width: 0; background: var(--ink); transition: width .3s, background .3s; }
+
+footer.priv { font-size: 13px; color: var(--muted); padding-bottom: 24px; }
+
+@media (max-width: 940px) {
+  .shelf { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .setup { grid-template-columns: 1fr; }
+  .shelf { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px 10px; }
+  .result-body { grid-template-columns: 1fr; }
+  .meter-track { width: 64px; }
+  .dot { width: 16px; height: 16px; }
+  .tab { font-size: 17px; padding: 6px 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+  .drip { animation: none; }
+}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header class="mast">
+    <h1>Music <span>Jars</span></h1>
+    <p>Pick what you're pouring, then fill a jar for every artist and every room that means something to you. Tap a jar to pour more, or tap a dot to set the level. Tap the same dot again to empty it. Leave a jar dry if they mean nothing.</p>
+    <div class="scale" aria-label="Fill levels">
+      <span><b>1</b> A drop</span><span><b>2</b> A splash</span><span><b>3</b> Half full</span><span><b>4</b> Brimming</span><span><b>5</b> Overflowing</span>
+    </div>
+  </header>
+
+  <section class="setup" aria-label="Set up your jars">
+    <div class="field">
+      <label class="label" for="nick">1 · Your name</label>
+      <input id="nick" type="text" maxlength="32" placeholder="Optional" autocomplete="off">
+    </div>
+    <div class="field">
+      <span class="label" id="pour-label">2 · What are you pouring?</span>
+      <div class="pours" role="group" aria-labelledby="pour-label" id="pours"></div>
+    </div>
+    <div class="field wide">
+      <span class="label" id="deck-label">3 · Pick a shelf</span>
+      <div class="tabs" role="tablist" aria-labelledby="deck-label" id="tabs"></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="deck-title" style="display:grid;gap:22px">
+    <div class="deck-head">
+      <h2 id="deck-title">Decades</h2>
+      <p id="deck-blurb"></p>
+    </div>
+    <div class="groups" id="groups"></div>
+  </section>
+
+  <section class="result" id="result" aria-labelledby="result-title">
+    <h2 id="result-title">4 · Your jars</h2>
+    <div class="result-body">
+      <div id="pic-slot"><div class="placeholder">Fill some jars, then tap&nbsp;<b>Make my picture</b>.</div></div>
+      <div class="howto">
+        <p id="save-hint">Your picture shows up here as a 1080 × 1350 image, sized for an Instagram post.</p>
+        <div class="btns">
+          <button class="btn" id="make" type="button">Make my picture</button>
+          <button class="btn" id="download" type="button" hidden>Download picture</button>
+          <button class="btn ghost" id="copy" type="button">Copy as text</button>
+          <button class="btn ghost" id="reset" type="button">Empty this shelf</button>
+        </div>
+        <textarea id="copy-fallback" hidden readonly rows="8"></textarea>
+        <p class="note" id="status" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="priv">Everything stays in this browser. Nothing you pour is sent anywhere. After <a href="https://lockedtony.github.io/kink-jars/" style="color:inherit">Kink Jars</a>.</footer>
+</div>
+
+<div class="bar">
+  <div class="bar-inner">
+    <div class="meter"><div class="meter-track"><div class="meter-fill" id="meter-fill"></div></div><span id="meter-text">0 of 28 filled</span></div>
+    <button class="btn" id="make2" type="button">Make my picture</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const LEVELS = ["Empty", "A drop", "A splash", "Half full", "Brimming", "Overflowing"];
+
+  /* ---------- Shelves ---------- */
+  const DECKS = {
+    decades: {
+      title: "Decades", blurb: "Eight bands a decade, from arena rock to the post-punk revival.",
+      groups: [
+        { label: "70s",   bands: ["Led Zeppelin", "Black Sabbath", "Pink Floyd", "Yes", "Fleetwood Mac", "Ramones", "Talking Heads", "Joy Division"] },
+        { label: "80s",   bands: ["The Cure", "The Smiths", "Depeche Mode", "R.E.M.", "U2", "Wham!", "Metallica", "Guns N' Roses"] },
+        { label: "90s",   bands: ["Nirvana", "Radiohead", "Nine Inch Nails", "Pearl Jam", "The Smashing Pumpkins", "Cracker", "Oasis", "Portishead"] },
+        { label: "2000s", bands: ["The Strokes", "The White Stripes", "Yeah Yeah Yeahs", "Interpol", "Arcade Fire", "LCD Soundsystem", "MGMT", "The Killers"] }
+      ]
+    },
+    dark: {
+      title: "Dark", blurb: "Goth, coldwave, ethereal and the new darkwave.",
+      groups: [
+        { label: "Goth",                bands: ["Bauhaus", "Siouxsie and the Banshees", "The Sisters of Mercy", "Christian Death", "Alien Sex Fiend", "Fields of the Nephilim", "The Mission"] },
+        { label: "Post-punk & coldwave", bands: ["The Chameleons", "Clan of Xymox", "Xmal Deutschland", "Kas Product", "Trisomie 21", "Asylum Party", "The Danse Society"] },
+        { label: "Ethereal",            bands: ["Cocteau Twins", "Dead Can Dance", "This Mortal Coil", "Lycia", "Love Spirals Downwards", "Black Tape for a Blue Girl", "Faith and the Muse"] },
+        { label: "New darkwave",        bands: ["She Wants Revenge", "Cold Cave", "Boy Harsher", "Lebanon Hanover", "Molchat Doma", "Drab Majesty", "Twin Tribes"] }
+      ]
+    },
+    industrial: {
+      title: "Industrial", blurb: "Factory noise, EBM, Wax Trax! and everything heavier that came after.",
+      groups: [
+        { label: "Roots",             bands: ["Throbbing Gristle", "Cabaret Voltaire", "Einstürzende Neubauten", "SPK", "Test Dept", "Coil", "Laibach"] },
+        { label: "EBM",               bands: ["Front 242", "DAF", "Nitzer Ebb", "Skinny Puppy", "Front Line Assembly", "Die Krupps", "Leæther Strip"] },
+        { label: "Wax Trax! & kin",   bands: ["Ministry", "KMFDM", "Revolting Cocks", "Pigface", "My Life with the Thrill Kill Kult", "Sister Machine Gun", "Godflesh"] },
+        { label: "Heavier & newer",   bands: ["Nine Inch Nails", "Rammstein", "Marilyn Manson", "Youth Code", "HEALTH", "Author & Punisher", "3TEETH"] }
+      ]
+    },
+    extreme: {
+      title: "Extreme", blurb: "Noise, death, black, doom and everything that clears a room.",
+      groups: [
+        { label: "Noise",         bands: ["Merzbow", "Whitehouse", "Prurient", "Wolf Eyes", "Lightning Bolt", "Boris", "Death Grips"] },
+        { label: "Death & grind", bands: ["Napalm Death", "Carcass", "Morbid Angel", "Cannibal Corpse", "Gorguts", "Portal", "Pig Destroyer"] },
+        { label: "Black",         bands: ["Mayhem", "Darkthrone", "Emperor", "Bathory", "Celtic Frost", "Deathspell Omega", "Wolves in the Throne Room"] },
+        { label: "Doom & chaos",  bands: ["Sunn O)))", "Khanate", "Neurosis", "Converge", "The Dillinger Escape Plan", "Full of Hell", "The Body"] }
+      ]
+    },
+    grunge: {
+      title: "Grunge", blurb: "Seattle, Sub Pop, the rest of the country, and the revival.",
+      groups: [
+        { label: "Seattle",          bands: ["Nirvana", "Soundgarden", "Alice in Chains", "Pearl Jam", "Mudhoney", "Screaming Trees", "Mother Love Bone"] },
+        { label: "Sub Pop & proto",  bands: ["Green River", "Melvins", "Tad", "Malfunkshun", "Skin Yard", "The Gits", "7 Year Bitch"] },
+        { label: "Beyond Seattle",   bands: ["Stone Temple Pilots", "Hole", "L7", "Babes in Toyland", "Temple of the Dog", "Mad Season", "Dinosaur Jr."] },
+        { label: "Aftermath & revival", bands: ["Foo Fighters", "Bush", "Silverchair", "Nothing", "Narrow Head", "Superheaven", "Title Fight"] }
+      ]
+    },
+    dance: {
+      title: "Dance", blurb: "Synthpop to rave to French touch to whatever's on the floor tonight.",
+      groups: [
+        { label: "Synthpop & disco",          bands: ["Kraftwerk", "Chic", "New Order", "Pet Shop Boys", "Erasure", "Yazoo", "Soft Cell"] },
+        { label: "Rave & big beat",           bands: ["The Prodigy", "The Chemical Brothers", "Underworld", "Orbital", "Leftfield", "The KLF", "Fatboy Slim"] },
+        { label: "French touch & electroclash", bands: ["Daft Punk", "Justice", "Cassius", "Basement Jaxx", "Röyksopp", "Ladytron", "Fischerspooner"] },
+        { label: "Now",                       bands: ["Hot Chip", "Disclosure", "Bicep", "Overmono", "Moderat", "Caribou", "Jungle"] }
+      ]
+    },
+    ambient: {
+      title: "Ambient & Kosmische", blurb: "Eno to Craven Faults: drift, drone, modular and the German long-form.",
+      groups: [
+        { label: "Pioneers & kosmische", bands: ["Brian Eno", "Harold Budd", "Tangerine Dream", "Cluster", "Harmonia", "Popol Vuh", "Klaus Schulze"] },
+        { label: "Ambient techno & IDM", bands: ["The Orb", "Aphex Twin", "Global Communication", "Biosphere", "Boards of Canada", "Autechre", "The Future Sound of London"] },
+        { label: "Drone & minimal",      bands: ["Stars of the Lid", "William Basinski", "Gas", "Tim Hecker", "Grouper", "Éliane Radigue", "Hiroshi Yoshimura"] },
+        { label: "Hauntology & modular", bands: ["Craven Faults", "The Caretaker", "Belbury Poly", "Kaitlyn Aurelia Smith", "Suzanne Ciani", "Emeralds", "Oneohtrix Point Never"] }
+      ]
+    },
+    djs: {
+      title: "DJs", blurb: "Sorted by the decade they broke through, from the Warehouse and the Paradise Garage to now.",
+      groups: [
+        { label: "80s",    bands: ["Frankie Knuckles", "Larry Levan", "Ron Hardy", "Grandmaster Flash", "Derrick May", "Juan Atkins", "Kevin Saunderson", "Jellybean"] },
+        { label: "90s",    bands: ["Carl Cox", "Sasha", "John Digweed", "Jeff Mills", "Richie Hawtin", "Laurent Garnier", "Andrew Weatherall", "DJ Shadow", "Paul Oakenfold"] },
+        { label: "2000s",  bands: ["Tiësto", "Erol Alkan", "Diplo", "Ricardo Villalobos", "Ellen Allien", "Skrillex", "A-Trak", "Steve Aoki"] },
+        { label: "2010s+", bands: ["Peggy Gou", "Honey Dijon", "Black Coffee", "The Blessed Madonna", "Four Tet", "Charlotte de Witte", "Adam 12", "Majick", "Nina Kraviz"] }
+      ]
+    },
+    classical: {
+      title: "Classical", blurb: "Four hundred years of composers, from Monteverdi to Max Richter.",
+      groups: [
+        { label: "Baroque",                 bands: ["Bach", "Vivaldi", "Handel", "Purcell", "Monteverdi", "Telemann", "Scarlatti"] },
+        { label: "Classical & Romantic",    bands: ["Mozart", "Beethoven", "Haydn", "Schubert", "Chopin", "Brahms", "Tchaikovsky", "Wagner", "Mahler"] },
+        { label: "Modern",                  bands: ["Debussy", "Satie", "Ravel", "Stravinsky", "Bartók", "Schoenberg", "Prokofiev", "Shostakovich"] },
+        { label: "Minimal & contemporary",  bands: ["John Cage", "Ligeti", "Penderecki", "Terry Riley", "Steve Reich", "Philip Glass", "Arvo Pärt", "Max Richter", "Jóhann Jóhannsson"] }
+      ]
+    },
+    jazz: {
+      title: "Jazz", blurb: "Swing to bebop to the spiritual and electric eras, through the London and LA scenes now.",
+      groups: [
+        { label: "Early & swing",          bands: ["Louis Armstrong", "Duke Ellington", "Count Basie", "Billie Holiday", "Ella Fitzgerald", "Django Reinhardt", "Benny Goodman"] },
+        { label: "Bebop & hard bop",       bands: ["Charlie Parker", "Dizzy Gillespie", "Thelonious Monk", "Charles Mingus", "Art Blakey", "Sonny Rollins", "Horace Silver"] },
+        { label: "Cool, modal & spiritual", bands: ["Miles Davis", "John Coltrane", "Bill Evans", "Chet Baker", "Dave Brubeck", "Ornette Coleman", "Alice Coltrane", "Pharoah Sanders", "Sun Ra"] },
+        { label: "Electric & now",         bands: ["Herbie Hancock", "Weather Report", "Mahavishnu Orchestra", "Kamasi Washington", "Shabaka Hutchings", "Makaya McCraven", "Nubya Garcia", "BADBADNOTGOOD"] }
+      ]
+    },
+    clubs: {
+      title: "Nightclubs", blurb: "The rooms and nights that made the music, sorted by the decade they opened.",
+      groups: [
+        { label: "70s",          bands: ["The Loft", "Studio 54", "Paradise Garage", "The Warehouse", "CBGB", "Max's Kansas City", "Mudd Club", "Le Palace"] },
+        { label: "80s",          bands: ["The Haçienda", "The Batcave", "Danceteria", "Area", "Limelight", "Taboo", "Shoom", "Music Box", "Scream"] },
+        { label: "90s",          bands: ["Tresor", "Sound Factory", "Twilo", "Ministry of Sound", "Cream", "Space Ibiza", "Ostgut", "Fabric", "Das Bunker"] },
+        { label: "2000s",        bands: ["Berghain", "Panorama Bar", "Watergate", "Robert Johnson", "DC-10", "Cielo", "Trouw", "Bar Sinister"] },
+        { label: "2010s & now",  bands: ["Cloak & Dagger", "Bassiani", "Khidi", "Basement", "Nowadays", "De School", "Fold", "Shelter", "Sound"] }
+      ]
+    }
+  };
+  const colsOf = (d) => Math.max(7, ...DECKS[d].groups.map(g => g.bands.length));
+
+  /* ---------- Jar drawing (SVG, viewBox 100 × 150) ---------- */
+  const BODY = "M22 28 C15 31 14 38 14 46 L14 122 Q14 132 24 132 L76 132 Q86 132 86 122 L86 46 C86 38 85 31 78 28 Z";
+  const TOPS = [132, 118, 98, 74, 46, 24];        // liquid surface y per level
+  const dripPath = (x, y0, len, w) =>
+    `M${x - w} ${y0} L${x - w} ${y0 + len} A${w} ${w} 0 0 0 ${x + w} ${y0 + len} L${x + w} ${y0} Z`;
+  const wave = (y, amp = 2.4) =>
+    `M0 ${y} Q12.5 ${y - amp} 25 ${y} T50 ${y} T75 ${y} T100 ${y} V150 H0 Z`;
+
+  const FILLS = {
+    blood: {
+      name: "Blood", ink: "#b3121f",
+      defs: u => `<linearGradient id="${u}g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c8141f"/><stop offset="1" stop-color="#530510"/></linearGradient>`,
+      inside: (u, top, lvl) =>
+        `<path d="${wave(top)}" fill="url(#${u}g)"/>` +
+        `<path d="M16 ${top + 2} Q30 ${top - 1} 44 ${top + 2}" fill="none" stroke="#ff8f8f" stroke-opacity=".55" stroke-width="1.6" stroke-linecap="round"/>` +
+        (lvl >= 3 ? `<path d="M70 ${top + 14} q4 6 0 12" fill="none" stroke="#2c0207" stroke-opacity=".35" stroke-width="3" stroke-linecap="round"/>` : ""),
+      over: u => spill(u, { c: "#b3101c", pool: "#7d0812", hi: "#ff9a9a", w: 2.8, bulb: 1.35, dome: 9 })
+    },
+    tips: {
+      name: "Tips", ink: "#d4a52c",
+      defs: u => `<pattern id="${u}p" width="16" height="10" patternUnits="userSpaceOnUse">` +
+        `<rect width="16" height="10" fill="#6f5210"/>` +
+        `<ellipse cx="8" cy="2.6" rx="7" ry="3.4" fill="#e2b748" stroke="#9a7217" stroke-width="1"/>` +
+        `<ellipse cx="0" cy="7.6" rx="7" ry="3.4" fill="#d4a63a" stroke="#9a7217" stroke-width="1"/>` +
+        `<ellipse cx="16" cy="7.6" rx="7" ry="3.4" fill="#d4a63a" stroke="#9a7217" stroke-width="1"/></pattern>`,
+      inside: (u, top, lvl) => {
+        let s = `<rect x="0" y="${top + 2}" width="100" height="${150 - top}" fill="url(#${u}p)"/>`;
+        for (let x = 16, i = 0; x <= 86; x += 10, i++)
+          s += `<ellipse cx="${x}" cy="${top + (i % 2 ? 1.5 : 0)}" rx="7" ry="3.2" fill="#ecc458" stroke="#9a7217" stroke-width="1"/>`;
+        if (lvl >= 2) s += bill(56, top - 14, 13);
+        return s;
+      },
+      over: () => {
+        let s = "";
+        const coin = (x, y, r = 7) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * .46}" fill="#ecc458" stroke="#9a7217" stroke-width="1"/>`;
+        [[9, 143], [21, 146], [91, 141], [80, 146.5], [70, 143.5]].forEach(([x, y]) => s += coin(x, y));
+        s += `<circle cx="31" cy="138" r="6.5" fill="#e2b748" stroke="#9a7217" stroke-width="1"/><circle cx="31" cy="138" r="3.6" fill="none" stroke="#9a7217" stroke-width=".8"/>`;
+        const heap = [[20, 25], [30, 25], [40, 25], [50, 25], [60, 25], [70, 25], [80, 25], [25, 20], [35, 19], [45, 18.5], [55, 18.5], [65, 19], [75, 20], [32, 14], [42, 12.5], [52, 12], [62, 13], [70, 15], [47, 7.5], [57, 8]];
+        heap.forEach(([x, y]) => s += coin(x, y));
+        s = `<g transform="rotate(-14 28 8)">${billShape(18, -2, 15)}</g><g transform="rotate(18 76 8)">${billShape(66, 0, 13)}</g>` + s;
+        return s;
+      }
+    },
+    goo: {
+      name: "Goo", ink: "#7fcf2c",
+      defs: u => `<linearGradient id="${u}g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a8ec4c"/><stop offset="1" stop-color="#33790f"/></linearGradient>`,
+      inside: (u, top) => {
+        let s = `<path d="${wave(top, 4)}" fill="url(#${u}g)"/>` +
+          `<path d="M16 ${top + 2.5} Q28 ${top - 2} 40 ${top + 2.5}" fill="none" stroke="#efffc8" stroke-opacity=".7" stroke-width="2" stroke-linecap="round"/>`;
+        [[30, 120, 3.2], [62, 112, 4.4], [46, 96, 2.6], [72, 86, 3], [26, 72, 3.8], [55, 62, 2.4], [40, 48, 3.2], [68, 40, 2.2]]
+          .forEach(([x, y, r]) => { if (y > top + r + 3) s += `<circle cx="${x}" cy="${y}" r="${r}" fill="#d8ff9c" fill-opacity=".28" stroke="#efffc8" stroke-opacity=".55" stroke-width=".9"/>`; });
+        return s;
+      },
+      over: u => spill(u, { c: "#8fdc38", pool: "#4f9a1c", hi: "#f2ffd0", w: 4, bulb: 1.4, dome: 2, goo: true })
+    }
+  };
+  // Overflow for liquids: a pool underneath, a dome over the rim, drips down the outside and two over the front.
+  function spill(u, o) {
+    const { c, pool, hi, w, bulb, dome } = o;
+    const drip = (cls, x, y0, len, ww, edge) =>
+      `<g class="drip ${cls}"><path d="${dripPath(x, y0, len, ww)}" fill="${c}"${edge ? ` stroke="${hi}" stroke-opacity=".45" stroke-width=".8"` : ""}/>` +
+      `<circle cx="${x}" cy="${y0 + len}" r="${ww * bulb}" fill="${c}"${edge ? ` stroke="${hi}" stroke-opacity=".45" stroke-width=".8"` : ""}/>` +
+      (edge ? `<path d="M${x - ww * .35} ${y0 + 4} V${y0 + len - 2}" stroke="${hi}" stroke-opacity=".5" stroke-width=".9" stroke-linecap="round"/>` : "") + `</g>`;
+    let s = o.goo
+      ? `<path d="M6 141 Q8 134 20 136 Q32 131 50 134.5 Q68 130 80 135.5 Q94 134 94 141.5 Q93 148.5 70 147 Q50 150 30 147 Q6 148.5 6 141 Z" fill="${pool}"/>`
+      : `<ellipse cx="50" cy="141" rx="44" ry="6" fill="${pool}"/>`;
+    s += `<ellipse cx="32" cy="139.3" rx="13" ry="1.8" fill="${hi}" fill-opacity=".25"/>`;
+    s += `<path d="M11 29 C11 ${dome} 89 ${dome} 89 29 Z" fill="url(#${u}g)"/>`;
+    s += `<rect x="10.5" y="18.5" width="79" height="12" rx="6" fill="${c}"/>`;
+    s += `<path d="M24 ${dome + 9} Q42 ${dome + 3} 60 ${dome + 6}" fill="none" stroke="${hi}" stroke-opacity=".7" stroke-width="2" stroke-linecap="round"/>`;
+    s += drip("", 11.5, 26, o.goo ? 46 : 56, w, false);
+    s += drip("d3", 88.5, 26, o.goo ? 72 : 84, w, false);
+    s += `<ellipse class="drip d2" cx="11.5" cy="${o.goo ? 96 : 104}" rx="${w * .75}" ry="${w * 1.1}" fill="${c}"/>`;
+    s += drip("d2", 34, 28, o.goo ? 12 : 16, w + .4, true);
+    s += drip("d3", 63, 28, o.goo ? 24 : 30, w, true);
+    if (o.goo) s += `<circle cx="38" cy="${dome + 10}" r="2.2" fill="${hi}" fill-opacity=".6"/><circle cx="70" cy="${dome + 14}" r="1.6" fill="${hi}" fill-opacity=".5"/>`;
+    return s;
+  }
+  function billShape(x, y, h) {
+    const w = h * 1.9;
+    return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="1" fill="#97b882" stroke="#3f6230" stroke-width="1"/>` +
+      `<rect x="${x + 2.5}" y="${y + 2.5}" width="${w - 5}" height="${h - 5}" fill="none" stroke="#3f6230" stroke-width=".7"/>` +
+      `<ellipse cx="${x + w / 2}" cy="${y + h / 2}" rx="${h * .27}" ry="${h * .3}" fill="#6f9460" stroke="#3f6230" stroke-width=".7"/>`;
+  }
+  function bill(x, y, h) {
+    return `<g transform="rotate(68 ${x + h} ${y + h / 2})">${billShape(x, y, h)}</g>`;
+  }
+
+  function jarSVG(lvl, fillId, u, size) {
+    const F = FILLS[fillId] || FILLS.blood;
+    const top = TOPS[lvl];
+    const dims = size ? ` width="${size[0]}" height="${size[1]}"` : "";
+    const glassLine = size ? "#ece8f1" : "currentColor";
+    let s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 150"${dims} aria-hidden="true"${size ? ' style="overflow:visible"' : ""}>`;
+    s += `<defs><clipPath id="${u}c"><path d="${BODY}"/></clipPath>${F.defs(u)}</defs>`;
+    if (lvl < 5) s += `<ellipse cx="50" cy="136" rx="34" ry="3" fill="#000" fill-opacity=".18"/>`;
+    s += `<path d="${BODY}" fill="${glassLine}" fill-opacity=".05"/>`;
+    if (lvl) s += `<g clip-path="url(#${u}c)">${F.inside(u, top, lvl)}</g>`;
+    s += `<path class="glass-line" d="${BODY}" fill="none" stroke="${glassLine}" stroke-opacity=".5" stroke-width="2.4"/>`;
+    s += `<rect class="glass-line" x="17" y="20" width="66" height="9" rx="4.5" fill="none" stroke="${glassLine}" stroke-opacity=".5" stroke-width="2.4"/>`;
+    s += `<path d="M21 44 L21 104" stroke="#fff" stroke-opacity=".2" stroke-width="3.5" stroke-linecap="round"/>`;
+    if (lvl === 5) s += F.over(u);
+    return s + `</svg>`;
+  }
+
+  /* ---------- State ---------- */
+  const KEY = "band-jars-v2";
+  const state = { deck: "decades", name: "", fill: "blood", ratings: {} };
+  Object.keys(DECKS).forEach(k => state.ratings[k] = {});
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (saved) {
+      if (typeof saved.name === "string") state.name = saved.name;
+      if (FILLS[saved.fill]) state.fill = saved.fill;
+      if (DECKS[saved.deck]) state.deck = saved.deck;
+      Object.keys(DECKS).forEach(k => { if (saved.ratings && saved.ratings[k]) state.ratings[k] = saved.ratings[k]; });
+    }
+  } catch (e) {}
+  const hash = (location.hash || "").slice(1);
+  if (DECKS[hash]) state.deck = hash;
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+
+  const $ = (id) => document.getElementById(id);
+  const allBands = (d) => DECKS[d].groups.flatMap(g => g.bands);
+  const levelOf = (b) => state.ratings[state.deck][b] || 0;
+  const filledCount = () => allBands(state.deck).filter(b => levelOf(b) > 0).length;
+  const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  /* ---------- Setup controls ---------- */
+  $("nick").value = state.name;
+  $("nick").addEventListener("input", (e) => { state.name = e.target.value; save(); });
+
+  $("pours").innerHTML = Object.entries(FILLS).map(([k, f]) =>
+    `<button type="button" class="pour" id="pour-${k}" data-fill="${k}">${jarSVG(4, k, "pv" + k)}<span>${f.name}</span></button>`
+  ).join("") + `<button type="button" class="chip" id="pour-random">Surprise me</button>`;
+  $("pours").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.id === "pour-random") {
+      const others = Object.keys(FILLS).filter(k => k !== state.fill);
+      state.fill = others[Math.floor(Math.random() * others.length)];
+    } else state.fill = b.dataset.fill;
+    save(); applyFill(); allBands(state.deck).forEach(updateCell);
+  });
+  function applyFill() {
+    document.documentElement.style.setProperty("--ink", FILLS[state.fill].ink);
+    document.querySelectorAll(".pour").forEach(p => p.setAttribute("aria-pressed", String(p.dataset.fill === state.fill)));
+  }
+
+  $("tabs").innerHTML = Object.entries(DECKS).map(([k, d]) =>
+    `<button type="button" class="tab" role="tab" id="tab-${k}" data-deck="${k}">${esc(d.title)}</button>`).join("");
+  $("tabs").addEventListener("click", (e) => {
+    const b = e.target.closest(".tab"); if (!b) return;
+    state.deck = b.dataset.deck; save();
+    try { history.replaceState(null, "", "#" + state.deck); } catch (err) {}
+    renderDeck();
+  });
+
+  /* ---------- Shelf ---------- */
+  function renderDeck() {
+    const d = DECKS[state.deck];
+    document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.deck === state.deck)));
+    $("deck-title").textContent = d.title;
+    $("deck-blurb").textContent = d.blurb;
+    $("groups").style.setProperty("--cols", colsOf(state.deck));
+    let i = 0;
+    $("groups").innerHTML = d.groups.map(g => `
+      <div class="group">
+        <h3 class="group-label">${esc(g.label)}</h3>
+        <div class="shelf">${g.bands.map(b => cellHTML(b, i++)).join("")}</div>
+      </div>`).join("");
+    allBands(state.deck).forEach(updateCell);
+    updateMeter();
+  }
+  function cellHTML(band, i) {
+    return `<div class="cell" data-band="${esc(band)}" data-i="${i}">
+      <button type="button" class="jar" id="jar-${state.deck}-${i}"></button>
+      <div class="tape">${esc(band)}</div>
+      <div class="dots" role="group" aria-label="Fill level for ${esc(band)}">
+        ${[1, 2, 3, 4, 5].map(n => `<button type="button" class="dot" data-n="${n}" aria-label="${n}: ${LEVELS[n]}" title="${LEVELS[n]}"></button>`).join("")}
+      </div>
+      <div class="level"></div>
+    </div>`;
+  }
+  const cellFor = (band) => [...document.querySelectorAll(".cell")].find(c => c.dataset.band === band);
+  function updateCell(band) {
+    const c = cellFor(band); if (!c) return;
+    const v = levelOf(band);
+    const jar = c.querySelector(".jar");
+    jar.innerHTML = jarSVG(v, state.fill, "j" + c.dataset.i);
+    jar.setAttribute("aria-label", `${band}: ${LEVELS[v]}. Tap to pour more.`);
+    c.querySelectorAll(".dot").forEach(d => {
+      const n = +d.dataset.n;
+      d.classList.toggle("on", n <= v);
+      d.setAttribute("aria-pressed", String(n === v));
+    });
+    c.querySelector(".level").textContent = v ? LEVELS[v] : "";
+    c.classList.toggle("filled", v > 0);
+    c.classList.toggle("over", v === 5);
+  }
+  function setLevel(band, v) {
+    if (v) state.ratings[state.deck][band] = v; else delete state.ratings[state.deck][band];
+    save(); updateCell(band); updateMeter();
+  }
+  $("groups").addEventListener("click", (e) => {
+    const cell = e.target.closest(".cell"); if (!cell) return;
+    const band = cell.dataset.band, cur = levelOf(band);
+    const dot = e.target.closest(".dot");
+    if (dot) { const n = +dot.dataset.n; setLevel(band, n === cur ? 0 : n); return; }
+    if (e.target.closest(".jar")) setLevel(band, (cur + 1) % 6);
+  });
+  function updateMeter() {
+    const n = filledCount(), total = allBands(state.deck).length;
+    $("meter-text").textContent = `${n} of ${total} filled`;
+    $("meter-fill").style.width = (n / total * 100) + "%";
+  }
+
+  /* ---------- Reset (in-page confirmation) ---------- */
+  let armed = null;
+  $("reset").addEventListener("click", () => {
+    const btn = $("reset");
+    if (!armed) {
+      btn.textContent = `Tap again to empty all ${allBands(state.deck).length}`; btn.classList.add("danger");
+      armed = setTimeout(() => { armed = null; btn.textContent = "Empty this shelf"; btn.classList.remove("danger"); }, 3500);
+      return;
+    }
+    clearTimeout(armed); armed = null;
+    btn.textContent = "Empty this shelf"; btn.classList.remove("danger");
+    state.ratings[state.deck] = {}; save(); renderDeck();
+    $("status").textContent = `Emptied the ${DECKS[state.deck].title} shelf.`;
+  });
+
+  /* ---------- Text export ---------- */
+  function asText() {
+    const d = DECKS[state.deck];
+    const who = state.name.trim() ? `${state.name.trim()}'s Music Jars` : "My Music Jars";
+    const lines = [`${who} · ${d.title} · filled with ${FILLS[state.fill].name.toLowerCase()}`, ""];
+    d.groups.forEach(g => {
+      lines.push(g.label.toUpperCase());
+      g.bands.forEach(b => {
+        const v = levelOf(b);
+        lines.push(`${"●".repeat(v)}${"○".repeat(5 - v)}  ${b}${v ? "  (" + LEVELS[v].toLowerCase() + ")" : ""}`);
+      });
+      lines.push("");
+    });
+    return lines.join("\n").trim();
+  }
+  $("copy").addEventListener("click", () => {
+    const text = asText(), fb = $("copy-fallback");
+    const fallback = () => { fb.hidden = false; fb.value = text; fb.focus(); fb.select(); $("status").textContent = "Copying is blocked here. The text is selected below, so copy it yourself."; };
+    try {
+      navigator.clipboard.writeText(text).then(() => { fb.hidden = true; $("status").textContent = "Copied. Paste it anywhere."; }, fallback);
+    } catch (e) { fallback(); }
+  });
+
+  /* ---------- Picture ---------- */
+  function wrapText(ctx, text, maxW) {
+    const words = text.split(" "), lines = []; let line = "";
+    words.forEach(w => {
+      const t = line ? line + " " + w : w;
+      if (ctx.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t;
+    });
+    if (line) lines.push(line);
+    return lines;
+  }
+  const loadImg = (src) => new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; });
+
+  async function makePicture() {
+    $("status").textContent = "Pouring…";
+    try { await document.fonts.ready; } catch (e) {}
+    const W = 1080, H = 1350, ink = FILLS[state.fill].ink;
+    const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    const ctx = cv.getContext("2d");
+    const BG = "#141217", FG = "#ece8f1", MUTED = "#9a93a5", LINE = "#36313e", TAPE = "#e3d6ae", TAPEINK = "#2a2318";
+    const D = '"Big Shoulders Display", "Arial Narrow", Impact, sans-serif';
+    const B = '"Instrument Sans", Arial, sans-serif';
+    const M = '"IBM Plex Mono", Menlo, monospace';
+    const deck = DECKS[state.deck], who = state.name.trim();
+    const cols = colsOf(state.deck), total = allBands(state.deck).length;
+    const left = 36, colW = (W - left * 2) / cols;
+
+    // Jar images, drawn from the same SVG as the page
+    const rowsFit = Math.floor((Math.min(254, Math.floor((H - 304) / deck.groups.length)) - 92) / 1.5);
+    const JW = Math.min(96, Math.round(colW - 16), rowsFit), JH = Math.round(JW * 1.5);
+    const jarImgs = await Promise.all(deck.groups.flatMap(g => g.bands).map((b, i) =>
+      loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(jarSVG(levelOf(b), state.fill, "x" + i, [JW * 2, JH * 2])))
+    )).catch(() => null);
+
+    ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
+    ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = FG; ctx.font = `900 124px ${D}`;
+    ctx.fillText("MUSIC", 56, 158);
+    const bw = ctx.measureText("MUSIC ").width;
+    ctx.fillStyle = ink; ctx.fillText("JARS", 56 + bw, 158);
+    ctx.textAlign = "right";
+    ctx.font = `500 22px ${M}`; ctx.fillStyle = MUTED;
+    ctx.fillText(`${deck.title.toUpperCase()} · ${FILLS[state.fill].name.toUpperCase()}`, W - 56, 82);
+    ctx.fillStyle = FG; ctx.font = `600 34px ${B}`;
+    ctx.fillText(who || "_______________", W - 56, 152);
+    ctx.textAlign = "left";
+    ctx.fillStyle = LINE; ctx.fillRect(56, 192, W - 112, 2);
+
+    const top = 212, rowH = Math.min(254, Math.floor((H - top - 92) / deck.groups.length));
+    let idx = 0;
+    deck.groups.forEach((g, r) => {
+      const y0 = top + r * rowH;
+      ctx.font = `500 15px ${M}`; ctx.fillStyle = MUTED;
+      ctx.fillText(g.label.toUpperCase(), 56, y0 + 18);
+      g.bands.forEach((band, c) => {
+        const cx = left + c * colW + colW / 2;
+        const jy = y0 + 26;
+        if (jarImgs) ctx.drawImage(jarImgs[idx], cx - JW / 2, jy, JW, JH);
+        idx++;
+        ctx.font = `600 ${cols > 8 ? 14 : cols > 7 ? 15 : 16}px ${B}`;
+        const lines = wrapText(ctx, band, colW - 14).slice(0, 3);
+        const lh = 19, th = lines.length * lh + 10;
+        const tw = Math.min(colW - 8, Math.max(...lines.map(l => ctx.measureText(l).width)) + 16);
+        const ty = jy + JH + 6;
+        ctx.save(); ctx.translate(cx, ty + th / 2); ctx.rotate((c % 2 ? 1.2 : -1.5) * Math.PI / 180);
+        ctx.fillStyle = TAPE; ctx.fillRect(-tw / 2, -th / 2, tw, th);
+        ctx.fillStyle = TAPEINK; ctx.textAlign = "center";
+        lines.forEach((l, k) => ctx.fillText(l, 0, -th / 2 + 1 + lh * (k + 1)));
+        ctx.restore(); ctx.textAlign = "left";
+      });
+    });
+
+    const ky = H - 44;
+    ctx.fillStyle = LINE; ctx.fillRect(56, ky - 34, W - 112, 2);
+    ctx.font = `500 15px ${M}`;
+    let kx = 56;
+    for (let n = 1; n <= 5; n++) {
+      ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(kx + 9, ky - 5, 9, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = state.fill === "blood" ? "#fff" : "#141217"; ctx.textAlign = "center"; ctx.fillText(String(n), kx + 9, ky);
+      ctx.textAlign = "left"; ctx.fillStyle = FG;
+      const t = LEVELS[n].toUpperCase(); ctx.fillText(t, kx + 24, ky);
+      kx += 24 + ctx.measureText(t).width + 28;
+    }
+    ctx.textAlign = "right"; ctx.fillStyle = MUTED;
+    ctx.fillText(`${filledCount()}/${total} FILLED`, W - 56, ky);
+    ctx.textAlign = "left";
+
+    const img = new Image();
+    img.alt = `${who ? who + "'s" : "My"} Music Jars, ${deck.title} shelf filled with ${FILLS[state.fill].name.toLowerCase()}, ${filledCount()} of ${total} filled`;
+    img.src = cv.toDataURL("image/png");
+    $("pic-slot").replaceChildren(img);
+    $("save-hint").textContent = "On a phone, press and hold the picture and choose Save. On a computer, right-click it and choose Save Image.";
+    $("status").textContent = jarImgs ? "Picture ready." : "Picture ready, but the jars couldn't be drawn in this browser.";
+    lastPic = { canvas: cv, name: `music-jars-${state.deck}${who ? "-" + who.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") : ""}.png` };
+    $("download").hidden = false;
+    $("save-hint").textContent = "Tap Download picture. On some phones it opens the image instead; if so, press and hold it and choose Save.";
+    $("result").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  }
+  let lastPic = null;
+  $("download").addEventListener("click", () => {
+    if (!lastPic) return;
+    lastPic.canvas.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = lastPic.name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      $("status").textContent = "Downloaded.";
+    }, "image/png");
+  });
+  $("make").addEventListener("click", makePicture);
+  $("make2").addEventListener("click", makePicture);
+
+  applyFill();
+  renderDeck();
+})();
+</script>
+
+</body>
+</html>
