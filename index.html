@@ -192,6 +192,13 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .btn.ghost:hover { border-color: var(--fg); }
 .btn.danger { border-color: var(--ink); color: var(--fg); }
 .note { font-size: 13px; color: var(--muted); }
+.share-links { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.share-links a, .share-links button {
+  border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: 14px; font-weight: 600;
+  color: var(--fg); text-decoration: none; background: transparent;
+}
+.share-links a:hover, .share-links button:hover { border-color: var(--fg); }
+.credit a { color: var(--fg); font-weight: 600; text-decoration: none; border-bottom: 1px solid var(--ink); }
 #copy-fallback { width: 100%; background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; padding: 10px; font: 13px var(--f-mono); }
 
 /* Sticky bar */
@@ -274,9 +281,18 @@ footer.priv { font-size: 13px; color: var(--muted); padding-bottom: 24px; }
         <p id="save-hint">Your picture shows up here as a 1080 × 1350 image, sized for an Instagram post.</p>
         <div class="btns">
           <button class="btn" id="make" type="button">Make my picture</button>
-          <button class="btn" id="download" type="button" hidden>Download picture</button>
+          <button class="btn" id="share" type="button" hidden>Share</button>
+          <button class="btn ghost" id="download" type="button" hidden>Download picture</button>
           <button class="btn ghost" id="copy" type="button">Copy as text</button>
           <button class="btn ghost" id="reset" type="button">Empty this shelf</button>
+        </div>
+        <div class="share-links" id="share-links" hidden>
+          <span class="label">Post to</span>
+          <a id="sh-x" target="_blank" rel="noopener">X</a>
+          <a id="sh-threads" target="_blank" rel="noopener">Threads</a>
+          <a id="sh-bsky" target="_blank" rel="noopener">Bluesky</a>
+          <a id="sh-fb" target="_blank" rel="noopener">Facebook</a>
+          <button type="button" id="sh-copy">Copy link</button>
         </div>
         <textarea id="copy-fallback" hidden readonly rows="8"></textarea>
         <p class="note" id="status" role="status" aria-live="polite"></p>
@@ -284,7 +300,7 @@ footer.priv { font-size: 13px; color: var(--muted); padding-bottom: 24px; }
     </div>
   </section>
 
-  <footer class="priv">Everything stays in this browser. Nothing you pour is sent anywhere. After <a href="https://lockedtony.github.io/kink-jars/" style="color:inherit">Kink Jars</a>.</footer>
+  <footer class="priv"><span class="credit">Created by <a href="https://www.instagram.com/popantipop/" target="_blank" rel="noopener">@popantipop</a></span> after <a href="https://lockedtony.github.io/kink-jars/" style="color:inherit">Kink Jars</a>. Everything stays in this browser. Nothing you pour is sent anywhere.</footer>
 </div>
 
 <div class="bar">
@@ -296,6 +312,8 @@ footer.priv { font-size: 13px; color: var(--muted); padding-bottom: 24px; }
 
 <script>
 (() => {
+  const HANDLE = "@popantipop";
+  const SITE = "https://popantipop.github.io/music-jars/";
   const LEVELS = ["Empty", "A drop", "A splash", "Half full", "Brimming", "Overflowing"];
 
   /* ---------- Shelves ---------- */
@@ -684,7 +702,7 @@ footer.priv { font-size: 13px; color: var(--muted); padding-bottom: 24px; }
     const left = 36, colW = (W - left * 2) / cols;
 
     // Jar images, drawn from the same SVG as the page
-    const rowsFit = Math.floor((Math.min(254, Math.floor((H - 304) / deck.groups.length)) - 92) / 1.5);
+    const rowsFit = Math.floor((Math.min(254, Math.floor((H - 330) / deck.groups.length)) - 92) / 1.5);
     const JW = Math.min(96, Math.round(colW - 16), rowsFit), JH = Math.round(JW * 1.5);
     const jarImgs = await Promise.all(deck.groups.flatMap(g => g.bands).map((b, i) =>
       loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(jarSVG(levelOf(b), state.fill, "x" + i, [JW * 2, JH * 2])))
@@ -692,7 +710,11 @@ footer.priv { font-size: 13px; color: var(--muted); padding-bottom: 24px; }
 
     ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
     ctx.textBaseline = "alphabetic";
-    ctx.fillStyle = FG; ctx.font = `900 124px ${D}`;
+    ctx.font = `500 22px ${M}`;
+    const tagW = ctx.measureText(`${deck.title.toUpperCase()} · ${FILLS[state.fill].name.toUpperCase()}`).width;
+    let ts = 124; ctx.font = `900 ${ts}px ${D}`;
+    while (ts > 60 && ctx.measureText("MUSIC JARS").width > W - 112 - tagW - 32) { ts -= 4; ctx.font = `900 ${ts}px ${D}`; }
+    ctx.fillStyle = FG;
     ctx.fillText("MUSIC", 56, 158);
     const bw = ctx.measureText("MUSIC ").width;
     ctx.fillStyle = ink; ctx.fillText("JARS", 56 + bw, 158);
@@ -704,7 +726,7 @@ footer.priv { font-size: 13px; color: var(--muted); padding-bottom: 24px; }
     ctx.textAlign = "left";
     ctx.fillStyle = LINE; ctx.fillRect(56, 192, W - 112, 2);
 
-    const top = 212, rowH = Math.min(254, Math.floor((H - top - 92) / deck.groups.length));
+    const top = 212, rowH = Math.min(254, Math.floor((H - top - 118) / deck.groups.length));
     let idx = 0;
     deck.groups.forEach((g, r) => {
       const y0 = top + r * rowH;
@@ -728,7 +750,7 @@ footer.priv { font-size: 13px; color: var(--muted); padding-bottom: 24px; }
       });
     });
 
-    const ky = H - 44;
+    const ky = H - 70;
     ctx.fillStyle = LINE; ctx.fillRect(56, ky - 34, W - 112, 2);
     ctx.font = `500 15px ${M}`;
     let kx = 56;
@@ -741,6 +763,15 @@ footer.priv { font-size: 13px; color: var(--muted); padding-bottom: 24px; }
     }
     ctx.textAlign = "right"; ctx.fillStyle = MUTED;
     ctx.fillText(`${filledCount()}/${total} FILLED`, W - 56, ky);
+    // Credit line
+    ctx.textAlign = "left"; ctx.fillStyle = FG; ctx.font = `500 17px ${M}`;
+    ctx.fillText("CREATED BY", 56, H - 28);
+    let cx2 = 56 + ctx.measureText("CREATED BY ").width;
+    ctx.fillStyle = ink === "#b3121f" ? "#e0303f" : ink; ctx.fillText(HANDLE.toUpperCase(), cx2, H - 28);
+    cx2 += ctx.measureText(HANDLE.toUpperCase() + " ").width;
+    ctx.fillStyle = MUTED; ctx.fillText("AFTER KINK JARS", cx2, H - 28);
+    ctx.textAlign = "right"; ctx.fillStyle = MUTED;
+    ctx.fillText(SITE.replace("https://", "").replace(/\/$/, "").toUpperCase(), W - 56, H - 28);
     ctx.textAlign = "left";
 
     const img = new Image();
@@ -751,7 +782,8 @@ footer.priv { font-size: 13px; color: var(--muted); padding-bottom: 24px; }
     $("status").textContent = jarImgs ? "Picture ready." : "Picture ready, but the jars couldn't be drawn in this browser.";
     lastPic = { canvas: cv, name: `music-jars-${state.deck}${who ? "-" + who.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") : ""}.png` };
     $("download").hidden = false;
-    $("save-hint").textContent = "Tap Download picture. On some phones it opens the image instead; if so, press and hold it and choose Save.";
+    $("share").hidden = false;
+    $("save-hint").textContent = "Share it straight to Instagram, TikTok, X or your messages, or download it and post it yourself.";
     $("result").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   }
   let lastPic = null;
@@ -767,6 +799,39 @@ footer.priv { font-size: 13px; color: var(--muted); padding-bottom: 24px; }
       $("status").textContent = "Downloaded.";
     }, "image/png");
   });
+  /* ---------- Share ---------- */
+  function shareText(withHandle) {
+    const d = DECKS[state.deck];
+    const lead = `My Music Jars: ${d.title}, filled with ${FILLS[state.fill].name.toLowerCase()}. Fill yours:`;
+    return withHandle ? `${lead} ${SITE} (created by ${HANDLE})` : `${lead} ${SITE}`;
+  }
+  function openShareLinks() {
+    const t = encodeURIComponent(shareText(false)), u = encodeURIComponent(SITE), tt = encodeURIComponent(shareText(true));
+    $("sh-x").href = `https://x.com/intent/post?text=${t}`;
+    $("sh-threads").href = `https://www.threads.net/intent/post?text=${tt}`;
+    $("sh-bsky").href = `https://bsky.app/intent/compose?text=${tt}`;
+    $("sh-fb").href = `https://www.facebook.com/sharer/sharer.php?u=${u}`;
+    $("share-links").hidden = false;
+  }
+  $("share").addEventListener("click", () => {
+    if (!lastPic) return;
+    lastPic.canvas.toBlob(async (blob) => {
+      const file = blob && new File([blob], lastPic.name, { type: "image/png" });
+      const data = { files: file ? [file] : [], text: shareText(true), title: "Music Jars" };
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try { await navigator.share(data); $("status").textContent = "Shared."; return; }
+        catch (e) { if (e && e.name === "AbortError") return; }
+      }
+      openShareLinks();
+      $("status").textContent = "This browser can't hand the picture to your apps. Download it, then post it with one of the links below.";
+    }, "image/png");
+  });
+  $("sh-copy").addEventListener("click", () => {
+    const done = () => { $("status").textContent = "Link copied."; };
+    try { navigator.clipboard.writeText(SITE).then(done, () => { $("status").textContent = SITE; }); }
+    catch (e) { $("status").textContent = SITE; }
+  });
+
   $("make").addEventListener("click", makePicture);
   $("make2").addEventListener("click", makePicture);
 
